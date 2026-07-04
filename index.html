@@ -6,7 +6,6 @@
   <title>DemirBank</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.41.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -72,7 +71,7 @@
   </div>
 
   <div class="screen" id="receipt-screen">
-    <header class="header-with-back">
+    <header class="header-with-back" id="receipt-header">
       <button onclick="goBackToMain()" class="back-btn">←</button>
       <h2>Квитанция</h2>
     </header>
@@ -116,8 +115,11 @@
       </div>
     </div>
 
-    <button onclick="downloadReceipt()" class="big-btn" style="background:#00c853; font-weight: bold; color: white;">Скачать чек</button>
-    <button onclick="goBackToMain()" class="big-btn" style="background:#e30613;">На главную</button>
+    <div id="receipt-actions">
+      <button onclick="shareReceipt()" class="big-btn" style="background:#007aff; font-weight: bold; color: white;">Отправить чек (Поделиться)</button>
+      <button onclick="prepareForScreenshot()" class="big-btn" style="background:#1f1f1f; color: #aaa; font-size: 15px;">Открыть версию для скриншота</button>
+      <button onclick="goBackToMain()" class="big-btn" style="background:#e30613;">На главную</button>
+    </div>
   </div>
 
   <div class="screen" id="history-screen">
@@ -132,3 +134,4 @@
   <script src="script.js"></script>
 </body>
 </html>
+
