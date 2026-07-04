@@ -1,0 +1,205 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a0a;
+  color: white;
+  font-family: Arial, sans-serif;
+  padding-bottom: 30px;
+}
+
+.screen {
+  display: none;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.screen.active {
+  display: block;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+h1 {
+  color: #e30613;
+  text-align: center;
+  font-size: 28px;
+}
+
+h2 {
+  text-align: center;
+}
+
+.balance {
+  font-size: 24px;
+  color: #00ff9d;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.big-btn {
+  width: 100%;
+  padding: 18px;
+  background: #1f1f1f;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 17px;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.big-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.header-with-back {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: white;
+  cursor: pointer;
+}
+
+/* Поиск */
+.search-bar input {
+  width: 100%;
+  padding: 15px;
+  background: #1f1f1f;
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+}
+
+/* Банки */
+.bank-item {
+  background: #1f1f1f;
+  padding: 16px;
+  margin: 8px 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+}
+
+/* Форма перевода */
+.form-group {
+  margin: 20px 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #ccc;
+}
+
+.phone-input {
+  display: flex;
+  background: #1f1f1f;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prefix {
+  padding: 16px 12px;
+  background: #2a2a2a;
+  color: #aaa;
+}
+
+.phone-input input {
+  flex: 1;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 17px;
+  outline: none;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+/* Квитанция */
+.receipt {
+  background: white;
+  color: black;
+  padding: 25px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  margin: 15px 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  position: relative; /* Важно для относительного позиционирования элементов внутри */
+}
+
+.receipt-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #e30613;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+
+.db-logo {
+  font-size: 36px;
+  font-weight: bold;
+  color: #e30613;
+}
+
+.receipt-info p {
+  margin: 11px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #aaa;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 13px;
+  color: #555;
+}
+
+/* История */
+.history-list .history-item {
+  background: #1f1f1f;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 12px;
+}
+
+/* Корректировка синей печати под html2canvas */
+.blue-seal {
+  position: absolute;
+  right: 20px;
+  top: 40%;
+  border: 3px solid #00aaff;
+  color: #00aaff;
+  padding: 10px 15px;
+  font-size: 13px;
+  text-align: center;
+  transform: rotate(-12deg);
+  border-radius: 4px;
+  font-weight: bold;
+  box-shadow: 0 0 8px rgba(0,170,255,0.4);
+  pointer-events: none;
+  background: rgba(255, 255, 255, 0.85);
+}

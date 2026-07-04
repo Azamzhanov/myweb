@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DemirBank</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.41.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <div class="screen active" id="main-screen">
+    <header>
+      <h1>DemirBank</h1>
+      <p class="balance">12,450.00 KGS</p>
+    </header>
+    <button onclick="goToTransfers()" class="big-btn">Переводы</button>
+    <button onclick="goToHistory()" class="big-btn">История</button>
+  </div>
+
+  <div class="screen" id="transfers-screen">
+    <header class="header-with-back">
+      <button onclick="goBackToMain()" class="back-btn">←</button>
+      <h2>Переводы</h2>
+    </header>
+    <button onclick="goToOtherBanks()" class="big-btn">В другой банк КР</button>
+  </div>
+
+  <div class="screen" id="banks-screen">
+    <header class="header-with-back">
+      <button onclick="goToTransfers()" class="back-btn">←</button>
+      <h2>Переводы в другие банки КР</h2>
+    </header>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Поиск банка..." onkeyup="filterBanks()">
+    </div>
+    <div id="banks-list" class="banks-list"></div>
+  </div>
+
+  <div class="screen" id="transfer-form-screen">
+    <header class="header-with-back">
+      <button onclick="goBackToBanks()" class="back-btn">←</button>
+      <h2 id="bank-title">МБанк</h2>
+    </header>
+    <div class="content">
+      
+      <div class="form-group">
+        <label>Номер телефона</label>
+        <div class="phone-input">
+          <span class="prefix">+996</span>
+          <input type="tel" id="phone-input" placeholder="555 123 456" maxlength="9" oninput="checkFormValid()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ФИО Получателя</label>
+        <div class="phone-input">
+          <input type="text" id="name-input" placeholder="Иванов Иван Иванович" oninput="checkFormValid()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Сумма (KGS)</label>
+        <div class="phone-input">
+          <input type="number" id="amount-input" placeholder="0.00" oninput="checkFormValid()">
+        </div>
+      </div>
+
+      <button id="continue-btn" onclick="makeTransfer()" class="big-btn" disabled>Продолжить</button>
+    </div>
+  </div>
+
+  <div class="screen" id="receipt-screen">
+    <header class="header-with-back">
+      <button onclick="goBackToMain()" class="back-btn">←</button>
+      <h2>Квитанция</h2>
+    </header>
+    
+    <div class="receipt">
+      <div class="receipt-top">
+        <div class="db-logo">db</div>
+        <div>
+          <strong>DemirBank</strong><br>
+          <small style="color: #555;">bank for your life</small>
+        </div>
+        <div class="tx-number">№<span id="tx-id">384596180</span></div>
+      </div>
+
+      <div class="receipt-info">
+        <p><strong>Дата и время транзакции</strong><br><span id="receipt-date"></span></p>
+        <p><strong>Способ отправки</strong><br>Smart payments</p>
+        
+        <p><strong>Плательщик</strong><br>ЛУТФИНИСО МАХАМАТСОЛИЕВНА ГУЛАМОВА</p>
+        <p><strong>Реквизиты плательщика</strong><br>1180000048110691</p>
+        <p><strong>Банк плательщика</strong><br>ЗАО "Демир Кыргыз Интернэшнл Банк"</p>
+        
+        <p><strong>Получатель</strong><br><span id="rec-name"></span></p>
+        <p><strong>Реквизиты получателя</strong><br><span id="rec-phone"></span></p>
+        
+        <p><strong>Сумма</strong><br><strong id="rec-amount"></strong> KGS</p>
+        <p><strong>Комиссия</strong><br>0,00 KGS</p>
+        
+        <p><strong>Описание</strong><br><span id="rec-description">MBank - пополнение по номеру телефона</span></p>
+      </div>
+
+      <div class="blue-seal">
+        ЗАО «ДЕМИР КЫРГЫЗ<br>ИНТЕРНЭШНЛ БАНК»
+      </div>
+
+      <div id="qr-code" style="margin:20px auto; display: flex; justify-content: center;"></div>
+
+      <div class="receipt-footer">
+        <small>Лицензия НБКР № 035</small><br>
+        <small>+996 (312) 610 610, 2222</small>
+      </div>
+    </div>
+
+    <button onclick="downloadReceipt()" class="big-btn" style="background:#00c853; font-weight: bold;">Скачать чек (PNG)</button>
+    <button onclick="goBackToMain()" class="big-btn" style="background:#e30613;">На главную</button>
+  </div>
+
+  <div class="screen" id="history-screen">
+    <header class="header-with-back">
+      <button onclick="goBackToMain()" class="back-btn">←</button>
+      <h2>История операций</h2>
+    </header>
+    <div id="history-list" class="history-list"></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
