@@ -112,62 +112,68 @@ function downloadReceipt() {
     return;
   }
 
-  // Убираем тень перед созданием снимка, чтобы избежать багов отображения
+  // Перед генерацией убедимся, что библиотека html2canvas загрузилась
+  if (typeof html2canvas === 'undefined') {
+    alert('Ошибка: Библиотека html2canvas не загрузилась. Проверьте интернет-соединение.');
+    return;
+  }
+
+  // Временно убираем тень, чтобы избежать артефактов на скриншоте
+  const originalBoxShadow = receiptElement.style.boxShadow;
   receiptElement.style.boxShadow = 'none';
 
-  // Опции для html2canvas
+  // Опции для максимальной совместимости с мобильными Safari/Chrome/WebView
   const options = {
-    scale: 2, // Высокое качество
-    useCORS: true,
+    scale: 2,                 // Повышенная четкость
+    useCORS: true,            // Разрешение CORS
+    allowTaint: true,         // Разрешение рендеринга внешних стилей
     backgroundColor: '#ffffff',
     logging: false
   };
 
   html2canvas(receiptElement, options).then(canvas => {
-    // Возвращаем тень обратно в интерфейс
-    receiptElement.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
+    // Возвращаем исходную тень в интерфейс сайта
+    receiptElement.style.boxShadow = originalBoxShadow;
     
-    // Превращаем canvas в PNG строку
+    // Превращаем холст в PNG картинку (строка base64)
     const image = canvas.toDataURL('image/png');
 
-    // Проверяем среду. Если это мобильный мессенджер (Инста, ВК, Телеграм, Ватсап), 
-    // скачивание по ссылке не сработает — сразу показываем картинку
-    const isMobileWallet = /Telegram|WhatsApp|Instagram|FBAN|FBAV|VKMobile/i.test(navigator.userAgent);
+    // Проверяем, открыт ли сайт внутри мессенджеров (где прямая ссылка на скачивание блокируется)
+    const isMobileInApp = /Telegram|WhatsApp|Instagram|FBAN|FBAV|VKMobile/i.test(navigator.userAgent);
 
     const link = document.createElement('a');
-    if (typeof link.download !== 'undefined' && !isMobileWallet) {
-      // Обычный браузер (Хром, Яндекс, Опера)
-      link.download = `Chek_DemirBank_№${txId}.png`;
+    if (typeof link.download !== 'undefined' && !isMobileInApp) {
+      // Работает на ПК и в обычных мобильных браузерах Chrome/Safari
+      link.download = `Chek_DemirBank_No${txId}.png`;
       link.href = image;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } else {
-      // НАДЕЖНЫЙ ВАРИАНТ ДЛЯ МОБИЛЬНЫХ: Выводим картинку в интерфейс приложения поверх всего
+      // Железобетонный вариант для Телеграм/Ватсап — выводим картинку в созданное модальное окно поверх экрана
       showMobileOverlay(image);
     }
   }).catch(err => {
-    console.error('Ошибка сохранения:', err);
-    receiptElement.style.boxShadow = '0 4px 20px rgba(0,0,0,0.5)';
-    alert('Не удалось сгенерировать чек. Сделайте скриншот экрана.');
+    receiptElement.style.boxShadow = originalBoxShadow;
+    console.error('Ошибка создания холста:', err);
+    alert('Не удалось сгенерировать файл. Сделайте обычный скриншот экрана смартфона.');
   });
 }
 
-// Показ картинки поверх экрана для ручного сохранения на смартфонах
+// Создание модального окна на весь экран для ручного сохранения
 function showMobileOverlay(imageSrc) {
   let overlay = document.getElementById('mobile-receipt-overlay');
   
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.id = 'mobile-receipt-overlay';
-    // Динамические стили, чтобы не менять файл style.css
     Object.assign(overlay.style, {
       position: 'fixed',
       top: '0',
       left: '0',
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0,0,0,0.9)',
+      backgroundColor: 'rgba(0,0,0,0.95)',
       zIndex: '10000',
       display: 'flex',
       flexDirection: 'column',
@@ -179,13 +185,13 @@ function showMobileOverlay(imageSrc) {
   }
 
   overlay.innerHTML = `
-    <p style="color: #fff; text-align: center; font-family: Arial; margin-bottom: 15px; font-size: 16px;">
-      Зажмите пальцем картинку чека,<br>чтобы <b>Сохранить</b> или <b>Поделиться</b>
+    <p style="color: #fff; text-align: center; font-family: Arial, sans-serif; margin-bottom: 15px; font-size: 16px; line-height: 1.4;">
+      Чек успешно создан!<br><b>Зажмите пальцем картинку ниже</b>,<br>чтобы сохранить её в галерею.
     </p>
-    <img src="${imageSrc}" style="width: 100%; max-width: 360px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);" />
+    <img src="${imageSrc}" style="width: 100%; max-width: 360px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.6);" />
     <button onclick="document.getElementById('mobile-receipt-overlay').style.display='none'" 
-            style="margin-top: 20px; padding: 12px 30px; background: #e30613; color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer;">
-      Закрыть
+            style="margin-top: 25px; padding: 14px 40px; background: #e30613; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; width: 100%; max-width: 360px;">
+      Вернуться назад
     </button>
   `;
   
