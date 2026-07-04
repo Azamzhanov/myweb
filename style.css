@@ -137,6 +137,13 @@ h2 {
   min-height: 20px;
 }
 
+.recipient-info {
+  background: #1f1f1f;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 15px 0;
+}
+
 /* Квитанция */
 .receipt {
   background: white;
@@ -147,7 +154,7 @@ h2 {
   margin: 15px 0;
   font-size: 15.5px;
   line-height: 1.65;
-  position: relative; /* Важно для относительного позиционирования элементов внутри */
+  position: relative; /* Чтобы синяя печать ориентировалась по границам чека */
 }
 
 .receipt-top {
@@ -186,20 +193,19 @@ h2 {
   border-radius: 12px;
 }
 
-/* Корректировка синей печати под html2canvas */
+/* Синяя печать адаптированная под скриншотер */
 .blue-seal {
   position: absolute;
   right: 20px;
   top: 40%;
-  border: 3px solid #00aaff;
+  border: 3px double #00aaff;
   color: #00aaff;
   padding: 10px 15px;
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
   transform: rotate(-12deg);
-  border-radius: 4px;
+  border-radius: 6px;
   font-weight: bold;
-  box-shadow: 0 0 8px rgba(0,170,255,0.4);
   pointer-events: none;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
 }
