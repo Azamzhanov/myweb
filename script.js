@@ -1,5 +1,15 @@
 let currentScreen = 'main-screen';
 let selectedBankName = 'МБанк';
+let historyData = [];
+
+// Массив банков
+const banks = [
+  { name: "МБанк", logo: "📱" },
+  { name: "Оптима Банк", logo: "💳" },
+  { name: "РСК Банк", logo: "🏦" },
+  { name: "Айыл Банк", logo: "🌾" },
+  { name: "Бакай Банк", logo: "💎" }
+];
 
 document.addEventListener('DOMContentLoaded', () => {
   showScreen('main-screen');
@@ -26,7 +36,7 @@ function renderBanks(filtered = banks) {
   filtered.forEach(bank => {
     const div = document.createElement('div');
     div.className = 'bank-item';
-    div.innerHTML = `<span style="font-size:24px">${bank.logo}</span><span>${bank.name}</span>`;
+    div.innerHTML = `<span style="font-size:20px">${bank.logo}</span><span>${bank.name}</span>`;
     div.onclick = () => selectBank(bank);
     container.appendChild(div);
   });
@@ -61,39 +71,70 @@ function checkFormValid() {
   document.getElementById('continue-btn').disabled = !(phoneLen === 9 && nameLen > 0 && amount > 0);
 }
 
+// СОЗДАНИЕ ЧЕКА С АВТОМАТИЧЕСКИМ ВРЕМЕНЕМ TRANSATION
 function makeTransfer() {
-  const amount = parseFloat(document.getElementById('amount-input').value);
+  const amountInput = parseFloat(document.getElementById('amount-input').value);
   const phone = '+996 ' + document.getElementById('phone-input').value;
   const name = document.getElementById('name-input').value.trim().toUpperCase(); 
   const txId = Math.floor(100000000 + Math.random() * 900000000);
+  
+  // Рассчитываем текущие дату и время в момент нажатия
   const now = new Date();
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const year = String(now.getFullYear()).slice(-2);
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  
+  const formattedDateTime = `${day}.${month}.${year}, ${hours}:${minutes}:${seconds}`;
+  const formattedAmount = amountInput.toFixed(2).replace('.', ',');
 
-  history.unshift({
-    date: now,
+  // Запись действия в историю
+  historyData.unshift({
+    date: formattedDateTime,
     recipient: name,
-    amount: amount,
+    amount: formattedAmount,
     bank: selectedBankName
   });
 
+  // Заполнение HTML структуры квитанции данными
   document.getElementById('rec-name').textContent = name;
-  document.getElementById('rec-phone').textContent = phone;
-  document.getElementById('rec-amount').textContent = amount.toFixed(2);
-  document.getElementById('receipt-date').textContent = now.toLocaleString('ru-RU');
+  document.getElementById('rec-phone').textContent = '996' + document.getElementById('phone-input').value.replace(/\s+/g, '');
+  document.getElementById('rec-amount').textContent = formattedAmount;
+  document.getElementById('receipt-date').textContent = formattedDateTime;
   document.getElementById('tx-id').textContent = txId;
   document.getElementById('rec-description').textContent = `${selectedBankName} - пополнение по номеру телефона`;
 
   showScreen('receipt-screen');
-  generateQR(phone, amount, name);
 }
 
-function generateQR(phone, amount, name) {
-  const container = document.getElementById('qr-code');
+function renderHistory() {
+  const container = document.getElementById('history-list');
+  if (!container) return;
   container.innerHTML = '';
-  const text = `DemirBank|${selectedBankName}|${phone}|${amount} KGS|${name}`;
-  new QRCode(container, { text: text, width: 100, height: 100 }); // Уменьшили до 100px, чтобы не растягивать экран
+  if (historyData.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:#8c8c8c;margin-top:40px;">История пуста</p>';
+    return;
+  }
+  historyData.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <strong style="color:#fff">${item.bank}</strong>
+        <span style="color:#e30613; font-weight:bold;">-${item.amount} KGS</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:#8c8c8c;">
+        <span>${item.recipient}</span>
+        <span>${item.date}</span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
 }
 
-// ЖЕЛЕЗОБЕТОННЫЙ МЕТОД ДЛЯ АЙФОНА 15 (ЧЕРЕЗ КАНВАС БЕЗ СБОЙНЫХ БИБЛИОТЕК)
+// ЭКСПОРТ ЧЕКА В ИЗОБРАЖЕНИЕ ОДИН В ОДИН ДЛЯ СМАРТФОНОВ
 function shareReceiptOnIphone() {
   const txId = document.getElementById('tx-id').textContent;
   const date = document.getElementById('receipt-date').textContent;
@@ -102,130 +143,137 @@ function shareReceiptOnIphone() {
   const amount = document.getElementById('rec-amount').textContent;
   const desc = document.getElementById('rec-description').textContent;
 
-  // Рисуем чек "вслепую" прямо в памяти через стандартный быстрый Canvas
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   
-  // Идеальный размер под экран Айфона (пропорции 1 к 1.5)
-  canvas.width = 500;
-  canvas.height = 760;
+  canvas.width = 600;
+  canvas.height = 900;
 
+  // Белая подложка
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Шапка чека
-  ctx.fillStyle = '#e30613';
-  ctx.fillRect(25, 80, 450, 2);
+  // Круглый логотип db
+  ctx.strokeStyle = '#e30613';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(60, 65, 22, 0, 2 * Math.PI);
+  ctx.stroke();
 
   ctx.fillStyle = '#e30613';
-  ctx.font = 'bold 38px Arial';
-  ctx.fillText('db', 30, 60);
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText('db', 49, 72);
 
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 18px Arial';
-  ctx.fillText('DemirBank', 85, 45);
-  ctx.fillStyle = '#555555';
-  ctx.font = '11px Arial';
-  ctx.fillText('bank for your life', 85, 62);
+  // Текст бренда
+  ctx.fillStyle = '#e30613';
+  ctx.font = 'bold 26px Arial';
+  ctx.fillText('DemirBank', 95, 68);
 
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 15px Arial';
+  // Номер квитанции справа
+  ctx.fillStyle = '#2b2b2b';
+  ctx.font = 'bold 26px Arial';
   ctx.textAlign = 'right';
-  ctx.fillText(`№ ${txId}`, 470, 52);
+  ctx.fillText(`№:${txId}`, 550, 68);
   ctx.textAlign = 'left';
 
-  // Отрисовка полей чека (компактная высота)
-  let currentY = 120;
-  function addCheckLine(label, value, isSum = false) {
-    ctx.fillStyle = '#666666';
-    ctx.font = '12px Arial';
-    ctx.fillText(label, 30, currentY);
-    
-    currentY += 18;
-    ctx.fillStyle = '#000000';
-    ctx.font = isSum ? 'bold 16px Arial' : '14px Arial';
-    ctx.fillText(value, 30, currentY);
-    
-    currentY += 10;
-    ctx.strokeStyle = '#e0e0e0';
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(30, currentY);
-    ctx.lineTo(470, currentY);
-    ctx.stroke();
-    currentY += 24;
-  }
+  // Поля данных
+  const fields = [
+    { label: 'Дата и время транзакции', val: date, bold: true },
+    { label: 'Способ отправки', val: 'Smart payments', bold: false },
+    { label: 'Плательщик', val: 'ЛУТФИНИСО МАХАМАТСОЛИЕВНА ГУЛАМОВА', bold: true },
+    { label: 'Реквизиты плательщика', val: '1180000048110691', bold: true },
+    { label: 'Банк плательщика', val: 'ЗАО "Демир Кыргыз Интернэшнл Банк"', bold: false },
+    { label: 'Получатель', val: name, bold: true },
+    { label: 'Реквизиты получателя', val: phone, bold: true },
+    { label: 'Сумма', val: `${amount} KGS`, bold: true },
+    { label: 'Комиссия', val: '0,00 KGS', bold: true }
+  ];
 
-  addCheckLine('Дата и время транзакции', date);
-  addCheckLine('Способ отправки', 'Smart payments');
-  addCheckLine('Плательщик', 'Махмуджанов Азиз Абдуллаевич');
-  addCheckLine('Реквизиты плательщика', '1180000048110691');
-  addCheckLine('Банк плательщика', 'ЗАО "Демир Кыргыз Интернэшнл Банк"');
-  addCheckLine('Получатель', name);
-  addCheckLine('Реквизиты получателя', phone);
-  addCheckLine('Сумма', `${amount} KGS`, true);
-  addCheckLine('Комиссия', '0,00 KGS');
-  addCheckLine('Описание', desc);
+  let y = 140;
+  fields.forEach(f => {
+    ctx.fillStyle = '#8c8c8c';
+    ctx.font = '15px Arial';
+    ctx.fillText(f.label, 50, y);
+    y += 22;
+    
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = f.bold ? 'bold 18px Arial' : '500 18px Arial';
+    ctx.fillText(f.val, 50, y);
+    y += 38;
+  });
 
-  // Печать (аккуратная синяя)
-  ctx.save();
-  ctx.translate(350, 420);
-  ctx.rotate(-10 * Math.PI / 180);
-  ctx.strokeStyle = '#00aaff';
+  // Пунктирный разделитель
+  ctx.strokeStyle = '#dcdcdc';
   ctx.lineWidth = 2;
-  ctx.setLineDash([]);
-  ctx.strokeRect(0, 0, 120, 42);
-  ctx.fillStyle = '#00aaff';
-  ctx.font = 'bold 9px Arial';
-  ctx.fillText('ЗАО «ДЕМИР КЫРГЫЗ', 10, 18);
-  ctx.fillText('ИНТЕРНЭШНЛ БАНК»', 10, 31);
+  ctx.beginPath();
+  ctx.moveTo(50, y - 10);
+  ctx.lineTo(550, y - 10);
+  ctx.stroke();
+
+  // Блок описания
+  ctx.fillStyle = '#8c8c8c';
+  ctx.font = '15px Arial';
+  ctx.fillText('Описание', 50, y);
+  y += 22;
+  ctx.fillStyle = '#1a1a1a';
+  ctx.font = '18px Arial';
+  ctx.fillText(desc, 50, y);
+
+  // СИНЯЯ БАНКОВСКАЯ ПЕЧАТЬ ПОД УГЛОМ
+  ctx.save();
+  ctx.translate(430, 480);
+  ctx.rotate(-12 * Math.PI / 180);
+
+  ctx.strokeStyle = '#29b3e7';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(-90, -35, 180, 70);
+
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(-60, 0, 12, 0, 2 * Math.PI);
+  ctx.stroke();
+  ctx.fillStyle = '#29b3e7';
+  ctx.font = 'bold 11px Arial';
+  ctx.fillText('db', -66, 4);
+
+  ctx.font = 'bold 10px Arial';
+  ctx.fillText('ЗАО «ДЕМИР КЫРГЫЗ', -40, -5);
+  ctx.fillText('ИНТЕРНЭШНЛ БАНК»', -40, 12);
   ctx.restore();
 
-  // Нижний колонтитул
-  ctx.fillStyle = '#777777';
-  ctx.font = '11px Arial';
-  ctx.fillText('Лицензия НБКР № 035', 30, 730);
+  // Подвал
+  y = 830;
+  ctx.strokeStyle = '#eeeeee';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(50, y);
+  ctx.lineTo(550, y);
+  ctx.stroke();
+
+  y += 30;
+  ctx.fillStyle = '#8c8c8c';
+  ctx.font = '15px Arial';
+  ctx.fillText('Лицензия НБКР № 035', 50, y);
+  
   ctx.textAlign = 'right';
-  ctx.fillText('+996 (312) 610 610, 2222', 470, 730);
+  ctx.fillText('+996 (312) 610 610, 2222', 550, y);
 
-  // Превращаем в картинку и сразу шлем в меню Айфона
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    const file = new File([blob], `Receipt_${txId}.png`, { type: 'image/png' });
-
-    // Родной, вот это меню Айфон откроет МГНОВЕННО и без ошибок:
-    if (navigator.share) {
+  // Вызов системного меню «Поделиться» картинкой
+  canvas.toBlob(blob => {
+    const file = new File([blob], `receipt_${txId}.png`, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({
         files: [file],
-        title: `Чек №${txId}`
-      }).catch(e => console.log('Отмена отправки'));
+        title: 'Квитанция DemirBank',
+        text: 'Электронный чек перевода'
+      }).catch(err => console.log('Отмена шаринга'));
     } else {
-      // На случай если открыто внутри какого-то совсем кривого приложения
-      alert('Ваш браузер заблокировал шторку. Пожалуйста, удерживайте палец на чеке для сохранения.');
+      // Фолбек скачивания файла на ПК
+      const link = document.createElement('a');
+      link.download = `receipt_${txId}.png`;
+      link.href = canvas.toDataURL();
+      link.click();
     }
   }, 'image/png');
 }
-
-function renderHistory() {
-  const container = document.getElementById('history-list');
-  container.innerHTML = '';
-  if (history.length === 0) {
-    container.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px;">История операций пуста</p>';
-    return;
-  }
-  history.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'history-item';
-    div.style.display = 'flex';
-    div.style.justify = 'space-between';
-    div.style.alignItems = 'center';
-    div.innerHTML = `
-      <div style="flex: 1;">
-        <small style="color: #888;">${item.date.toLocaleString('ru-RU')}</small>
-        <p style="margin-top: 5px; font-weight: bold;">${item.bank} → ${item.recipient}</p>
-      </div>
-      <div style="color: #00ff9d; font-weight: bold;">-${item.amount.toFixed(2)} KGS</div>
-    `;
-    container.appendChild(div);
-  });
-}
+  

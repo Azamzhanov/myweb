@@ -2,127 +2,168 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-touch-callout: none; /* Отключаем лишние выделения на iOS */
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 body {
-  background: #0a0a0a;
+  background: #121212;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   padding-bottom: 10px;
+  display: flex;
+  justify-content: center;
 }
 
 .screen {
   display: none;
-  padding: 12px;
+  width: 100%;
+  max-width: 500px;
   min-height: 100vh;
+  background-color: #121212;
 }
 
 .screen.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
-  margin-bottom: 10px;
+  padding: 15px;
+  border-bottom: 1px solid #222;
 }
 
 h1 {
   color: #e30613;
   text-align: center;
   font-size: 24px;
+  margin: 0;
 }
 
 h2 {
   text-align: center;
   font-size: 18px;
+  margin: 0;
 }
 
 .balance {
   font-size: 20px;
   color: #00ff9d;
   text-align: center;
-  margin: 4px 0;
+  margin: 8px 0 0 0;
+  font-weight: bold;
+}
+
+.content {
+  padding: 15px;
 }
 
 .big-btn {
   width: 100%;
-  padding: 15px;
+  padding: 16px;
   background: #1f1f1f;
-  border: none;
+  border: 1px solid #2d2d2d;
   border-radius: 12px;
   color: white;
   font-size: 16px;
-  margin: 6px 0;
+  margin: 8px 0;
   cursor: pointer;
   font-weight: 500;
+  text-align: left;
 }
 
 .big-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.red-btn-accent:not(:disabled) {
+  background-color: #e30613;
+  border-color: #e30613;
+  text-align: center;
 }
 
 .header-with-back {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 10px;
+  justify-content: center;
+  position: relative;
+  padding: 15px;
+  border-bottom: 1px solid #222;
 }
 
 .back-btn {
+  position: absolute;
+  left: 15px;
   background: none;
   border: none;
   font-size: 24px;
   color: white;
+  cursor: pointer;
 }
 
-/* Поиск и инпуты */
+/* Инпуты */
+.search-bar {
+  padding: 12px 15px;
+}
+
 .search-bar input {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   background: #1f1f1f;
-  border: none;
+  border: 1px solid #2d2d2d;
   border-radius: 12px;
   color: white;
   font-size: 15px;
+  outline: none;
+}
+
+.banks-list {
+  padding: 5px 15px;
 }
 
 .bank-item {
   background: #1f1f1f;
-  padding: 12px;
-  margin: 5px 0;
+  padding: 14px;
+  margin: 8px 0;
   border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  border: 1px solid #2d2d2d;
 }
 
 .form-group {
-  margin: 12px 0;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 4px;
-  color: #ccc;
+  margin-bottom: 6px;
+  color: #8c8c8c;
   font-size: 13px;
 }
 
 .phone-input {
   display: flex;
   background: #1f1f1f;
+  border: 1px solid #2d2d2d;
   border-radius: 12px;
   overflow: hidden;
+  align-items: center;
 }
 
 .prefix {
-  padding: 12px;
-  background: #2a2a2a;
-  color: #aaa;
+  padding: 14px 12px;
+  background: #262626;
+  color: #fff;
+  font-weight: bold;
 }
 
 .phone-input input {
   flex: 1;
-  padding: 12px;
+  padding: 14px;
   background: transparent;
   border: none;
   color: white;
@@ -130,73 +171,154 @@ h2 {
   outline: none;
 }
 
-/* КВИТАНЦИЯ: УЛЬТРА-КОМПАКТНАЯ ДЛЯ ЭКРАНА АЙФОНА 15 */
+/* ОФОРМЛЕНИЕ ЧЕКА */
 .receipt {
-  background: white;
-  color: black;
-  padding: 12px 14px;
-  border-radius: 10px;
-  margin: 5px 0;
-  font-size: 12px; /* Шрифт меньше, чтобы всё влезло */
-  line-height: 1.3;
+  background: #ffffff;
+  color: #000000;
+  padding: 25px 20px;
+  border-radius: 4px;
+  margin: 15px;
   position: relative;
-  max-height: 68vh; /* Строгое ограничение по высоте на самом экране */
-  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .receipt-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid #e30613;
-  padding-bottom: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 20px;
 }
 
-.db-logo {
-  font-size: 24px;
-  font-weight: bold;
+.logo-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.db-logo-circle {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #e30613;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   color: #e30613;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.db-text-brand {
+  color: #e30613;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
 }
 
 .tx-number {
-  font-size: 12px;
+  font-size: 20px;
   font-weight: bold;
+  color: #2b2b2b;
 }
 
 .receipt-info p {
-  margin: 4px 0; /* Минимальный шаг между строками */
-  padding-bottom: 2px;
-  border-bottom: 1px dashed #eee;
+  margin: 0 0 14px 0;
+  line-height: 1.3;
+}
+
+.receipt-info strong.field-label {
+  font-size: 11px;
+  color: #8c8c8c;
+  font-weight: normal;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.receipt-info span.field-value {
+  font-size: 13px;
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+.receipt-info span.field-value-bold {
+  font-weight: 700;
+}
+
+.receipt-divider {
+  border-top: 1px dashed #dcdcdc;
+  margin: 15px 0;
+}
+
+.blue-seal {
+  position: absolute;
+  right: 25px;
+  top: 42%;
+  border: 2px solid #29b3e7;
+  color: #29b3e7;
+  padding: 6px 10px;
+  font-size: 9px;
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(-12deg);
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 2px;
+  line-height: 1.3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.seal-inner-circle {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #29b3e7;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 9px;
 }
 
 .receipt-footer {
-  text-align: center;
-  margin-top: 8px;
-  font-size: 10px;
-  color: #666;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #8c8c8c;
+  border-top: 1px solid #eeeeee;
+  padding-top: 12px;
+  margin-top: 80px;
 }
 
-.history-list .history-item {
+#receipt-actions {
+  margin-top: auto;
+  padding: 15px;
+}
+
+.red-share-btn {
+  width: 100%;
+  background-color: #e30613;
+  color: white;
+  border: none;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* История */
+.history-list {
+  padding: 15px;
+}
+
+.history-item {
   background: #1f1f1f;
-  padding: 12px;
-  margin: 6px 0;
+  padding: 14px;
+  margin: 8px 0;
   border-radius: 12px;
-}
-
-/* Синяя печать больше не раздувает высоту чека */
-.blue-seal {
-  position: absolute;
-  right: 15px;
-  top: 45%;
-  border: 1.5px double #00aaff;
-  color: #00aaff;
-  padding: 4px 8px;
-  font-size: 8px;
-  text-align: center;
-  transform: rotate(-8deg);
-  border-radius: 3px;
-  font-weight: bold;
-  background: rgba(255, 255, 255, 0.96);
-  pointer-events: none;
+  border: 1px solid #2d2d2d;
 }
