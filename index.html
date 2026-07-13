@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>DemirBank</title>
   <link rel="stylesheet" href="style.css">
-  <!-- ИСПРАВЛЕНО: Подключаем правильную и полную ссылку на библиотеку QR-сканера -->
-  <script src="https://unpkg.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 </head>
 <body>
 
@@ -71,6 +70,7 @@
 
       <!-- ИСПРАВЛЕНО: Контейнер сканера будет появляться плавно прямо под инпутом имени при активации кнопки -->
       <div id="reader-container" style="display: none; margin: 15px 0; border: 2px dashed #002f6c; padding: 5px; border-radius: 8px;">
+        <div id="qr-status" style="width:100%; text-align:center; color:#fff; padding:6px; display:none;">Загружаю сканер...</div>
         <div id="reader" style="width: 100%;"></div>
         <button type="button" onclick="stopQRScanner()" style="width: 100%; margin-top: 5px; background: #e02424; color: white; border: none; padding: 6px; border-radius: 4px;">Закрыть камеру</button>
       </div>

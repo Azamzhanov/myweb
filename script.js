@@ -72,48 +72,77 @@ function checkFormValid() {
   const amount = parseFloat(document.getElementById('amount-input').value || 0);
   document.getElementById('continue-btn').disabled = !(phoneLen === 9 && nameLen > 0 && amount > 0);
 }
-
 // ФУНКЦИИ ДЛЯ СКАНИРОВАНИЯ QR-КОДА
 function startQRScanner() {
   const container = document.getElementById('reader-container');
-  container.style.style.display = 'block';
-
-  Html5Qrcode.getCameras().then(cameras => {
-    if (cameras && cameras.length > 0) {
-      const cameraId = cameras[0].id;
-      html5QrCode = new Html5Qrcode("reader");
-      
-      html5QrCode.start(
-        cameraId,
-        { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText) => {
-          document.getElementById('name-input').value = decodedText;
-          stopQRScanner();
-          checkFormValid();
-        },
-        () => { /* Глушим ошибки кадра */ }
-      ).catch(err => {
-        console.error("Ошибка старта сканера:", err);
-      });
-    } else {
-      alert("Камера не найдена");
+  if (container) container.style.display = 'block'; // ИСПРАВЛЕНО: убрали лишнее .style
+  // Если библиотека не подключилась, подгружаем её динамически
+  function initAndStart() {
+    if (typeof Html5Qrcode === 'undefined') {
+      alert('Библиотека сканера не загружена. Попробуйте обновить страницу.');
+      console.error('Html5Qrcode is not available on window');
+      return;
     }
-  }).catch(err => {
-    console.error("Доступ к камере заблокирован:", err);
-    alert("Разрешите доступ к камере в браузере.");
-  });
+
+    Html5Qrcode.getCameras().then(cameras => {
+      if (cameras && cameras.length > 0) {
+        const cameraId = cameras[0].id;
+        html5QrCode = new Html5Qrcode("reader");
+
+        html5QrCode.start(
+          cameraId,
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText) => {
+            document.getElementById('name-input').value = decodedText;
+            stopQRScanner();
+            checkFormValid();
+          },
+          () => { /* Игнорируем ошибки кадра */ }
+        ).catch(err => {
+          console.error("Ошибка старта сканера:", err);
+          alert('Не удалось запустить сканер: ' + err);
+        });
+      } else {
+        alert("Камера не найдена");
+      }
+    }).catch(err => {
+      console.error("Доступ к камере заблокирован:", err);
+      alert("Разрешите доступ к камере в браузере.");
+    });
+  }
+
+  if (typeof Html5Qrcode === 'undefined') {
+    // Попробуем подгрузить библиотеку из CDN динамически
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js';
+    s.onload = () => initAndStart();
+    s.onerror = () => {
+      console.error('Не удалось загрузить html5-qrcode');
+      alert('Не удалось загрузить библиотеку сканера. Проверьте подключение.');
+    };
+    document.head.appendChild(s);
+  } else {
+    initAndStart();
+  }
 }
 
 function stopQRScanner() {
   const container = document.getElementById('reader-container');
-  if (container) container.style.style.display = 'none';
+  if (container) container.style.display = 'none'; // ИСПРАВЛЕНО: убрали лишнее .style
   
-  if (html5QrCode && html5QrCode.isScanning) {
-    html5QrCode.stop().then(() => {
-      console.log("Сканер остановлен");
-    }).catch(err => {
-      console.error("Ошибка остановки сканера:", err);
-    });
+  if (html5QrCode) {
+    try {
+      html5QrCode.stop().then(() => {
+        console.log("Сканер остановлен");
+        html5QrCode.clear();
+        html5QrCode = null;
+      }).catch(err => {
+        console.error("Ошибка остановки сканера:", err);
+      });
+    } catch (e) {
+      console.warn('Ошибка при остановке сканера (возможно уже остановлен):', e);
+      html5QrCode = null;
+    }
   }
 }
 
