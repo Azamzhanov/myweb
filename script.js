@@ -2,6 +2,10 @@ let currentScreen = 'main-screen';
 let selectedBankName = 'МБанк';
 let historyData = [];
 let html5QrCode; // Глобальная переменная для управления QR-сканером
+let barcodeDetector;
+let barcodeStream = null;
+let barcodeVideo = null;
+let barcodeLoopActive = false;
 
 // Массив банков
 const banks = [
@@ -76,6 +80,90 @@ function checkFormValid() {
 function startQRScanner() {
   const container = document.getElementById('reader-container');
   if (container) container.style.display = 'block'; // ИСПРАВЛЕНО: убрали лишнее .style
+  const reader = document.getElementById('reader');
+
+  // Попытка использовать нативный BarcodeDetector (быстрее и не требует CDN)
+  async function tryNativeBarcode() {
+    if (!('BarcodeDetector' in window)) return false;
+    try {
+      // Попробуем создать детектор для QR
+      barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+    } catch (e) {
+      console.warn('BarcodeDetector creation failed:', e);
+      barcodeDetector = null;
+      return false;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      barcodeStream = stream;
+
+      if (!barcodeVideo) {
+        barcodeVideo = document.createElement('video');
+        barcodeVideo.setAttribute('playsinline', '');
+        barcodeVideo.style.width = '100%';
+        barcodeVideo.style.height = 'auto';
+        reader.appendChild(barcodeVideo);
+      }
+
+      barcodeVideo.srcObject = stream;
+      await barcodeVideo.play();
+
+      barcodeLoopActive = true;
+
+      const scanLoop = async () => {
+        if (!barcodeLoopActive) return;
+        try {
+          const barcodes = await barcodeDetector.detect(barcodeVideo);
+          if (barcodes && barcodes.length > 0) {
+            const value = barcodes[0].rawValue || barcodes[0].rawData || '';
+            handleDecodedText(value);
+            return;
+          }
+        } catch (e) {
+          // detect may throw when video not ready; ignore
+        }
+        requestAnimationFrame(scanLoop);
+      };
+      requestAnimationFrame(scanLoop);
+      return true;
+    } catch (e) {
+      console.warn('Native barcode start failed:', e);
+      if (barcodeStream) {
+        barcodeStream.getTracks().forEach(t => t.stop());
+        barcodeStream = null;
+      }
+      return false;
+    }
+  }
+
+  function handleDecodedText(decodedText) {
+    if (!decodedText) return;
+    // Простая попытка извлечь имя из текста QR (если структура известна, расширьте парсер)
+    let name = decodedText;
+    // Частые шаблоны: "NAME:ИМЯ", "N:ИМЯ", или JSON {"name":"..."}
+    try {
+      const maybeJson = JSON.parse(decodedText);
+      if (maybeJson && maybeJson.name) name = maybeJson.name;
+    } catch (e) {
+      // не JSON
+      const m1 = decodedText.match(/NAME[:=]\s*(.+)/i);
+      const m2 = decodedText.match(/N[:=]\s*(.+)/i);
+      if (m1) name = m1[1].trim();
+      else if (m2) name = m2[1].trim();
+    }
+
+    document.getElementById('name-input').value = name;
+    checkFormValid();
+    stopQRScanner();
+  }
+
+  // Сначала попробуем нативный детектор
+  tryNativeBarcode().then(ok => {
+    if (ok) return; // запущено
+    // иначе используем существующий CDN/html5-qrcode fallback
+    loadWithFallback();
+  });
   // Если библиотека не подключилась, подгружаем её динамически
   function initAndStart() {
     if (typeof Html5Qrcode === 'undefined') {
@@ -111,19 +199,64 @@ function startQRScanner() {
     });
   }
 
-  if (typeof Html5Qrcode === 'undefined') {
-    // Попробуем подгрузить библиотеку из CDN динамически
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js';
-    s.onload = () => initAndStart();
-    s.onerror = () => {
-      console.error('Не удалось загрузить html5-qrcode');
-      alert('Не удалось загрузить библиотеку сканера. Проверьте подключение.');
-    };
-    document.head.appendChild(s);
-  } else {
-    initAndStart();
+  const statusEl = document.getElementById('qr-status');
+  function showStatus(text) {
+    if (!statusEl) return;
+    statusEl.style.display = 'block';
+    statusEl.textContent = text;
   }
+  function hideStatus() {
+    if (!statusEl) return;
+    statusEl.style.display = 'none';
+  }
+
+  async function loadScript(url) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = url;
+      s.async = true;
+      s.onload = () => resolve(url);
+      s.onerror = () => reject(new Error('load error: ' + url));
+      document.head.appendChild(s);
+    });
+  }
+
+  async function loadWithFallback() {
+    if (typeof Html5Qrcode !== 'undefined') {
+      hideStatus();
+      initAndStart();
+      return;
+    }
+
+    const cdns = [
+      'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/minified/html5-qrcode.min.js',
+      'https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js',
+      'https://cdn.jsdelivr.net/gh/mebjas/html5qrcode@master/minified/html5-qrcode.min.js'
+    ];
+
+    showStatus('Загрузка сканера...');
+    for (let i = 0; i < cdns.length; i++) {
+      const url = cdns[i];
+      try {
+        await loadScript(url);
+        // краткая задержка, чтобы объект появился на window
+        await new Promise(r => setTimeout(r, 50));
+        if (typeof Html5Qrcode !== 'undefined') {
+          hideStatus();
+          initAndStart();
+          return;
+        }
+      } catch (e) {
+        console.warn('CDN failed:', url, e);
+        // пробуем следующий
+      }
+    }
+
+    showStatus('Не удалось загрузить сканер. Проверьте подключение.');
+    console.error('Не удалось загрузить html5-qrcode с всех CDN');
+  }
+
+  loadWithFallback();
 }
 
 function stopQRScanner() {
@@ -143,6 +276,26 @@ function stopQRScanner() {
       console.warn('Ошибка при остановке сканера (возможно уже остановлен):', e);
       html5QrCode = null;
     }
+  }
+  // Остановим нативный поток/видео, если он был
+  try {
+    barcodeLoopActive = false;
+    if (barcodeStream) {
+      barcodeStream.getTracks().forEach(t => t.stop());
+      barcodeStream = null;
+    }
+    if (barcodeVideo) {
+      barcodeVideo.pause();
+      if (barcodeVideo.srcObject) barcodeVideo.srcObject = null;
+      // удаляем видео из DOM
+      if (barcodeVideo.parentNode) barcodeVideo.parentNode.removeChild(barcodeVideo);
+      barcodeVideo = null;
+    }
+    barcodeDetector = null;
+    const statusEl = document.getElementById('qr-status');
+    if (statusEl) statusEl.style.display = 'none';
+  } catch (e) {
+    console.warn('Ошибка при остановке нативного сканера:', e);
   }
 }
 
