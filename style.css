@@ -171,6 +171,28 @@ h2 {
   outline: none;
 }
 
+/* ДОБАВЛЕНО: Стили кнопки QR-сканирования под инпутом ФИО */
+.qr-scan-btn {
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.qr-scan-btn:active {
+  background-color: #001f4d !important;
+}
+
+/* ДОБАВЛЕНО: Кастомизация интерфейса сканера html5-qrcode под темную тему */
+#reader video {
+  border-radius: 8px;
+  object-fit: cover !important;
+}
+
+#reader__dashboard {
+  padding: 10px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+}
+
 /* ОФОРМЛЕНИЕ ЧЕКА */
 .receipt {
   background: #ffffff;
