@@ -2,6 +2,7 @@ let currentScreen = 'main-screen';
 let selectedBankName = 'МБанк';
 let historyData = [];
 let html5QrCode; // Глобальная переменная для управления QR-сканером
+console.log('script.js loaded — v1');
 let barcodeDetector;
 let barcodeStream = null;
 let barcodeVideo = null;
@@ -129,6 +130,11 @@ function startQRScanner() {
       return true;
     } catch (e) {
       console.warn('Native barcode start failed:', e);
+        const statusEl = document.getElementById('qr-status');
+        if (statusEl) {
+          statusEl.style.display = 'block';
+          statusEl.textContent = 'Ошибка доступа к камере: ' + (e.message || e.name || 'unknown');
+        }
       if (barcodeStream) {
         barcodeStream.getTracks().forEach(t => t.stop());
         barcodeStream = null;
@@ -164,6 +170,22 @@ function startQRScanner() {
     // иначе используем существующий CDN/html5-qrcode fallback
     loadWithFallback();
   });
+
+}
+
+// Кнопка повторной попытки
+function retryQRScanner() {
+  stopQRScanner();
+  const statusEl = document.getElementById('qr-status');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'Повторная попытка...';
+  }
+  // Небольшая задержка чтобы очистить состояние
+  setTimeout(() => {
+    startQRScanner();
+  }, 300);
+}
   // Если библиотека не подключилась, подгружаем её динамически
   function initAndStart() {
     if (typeof Html5Qrcode === 'undefined') {
@@ -257,7 +279,7 @@ function startQRScanner() {
   }
 
   loadWithFallback();
-}
+
 
 function stopQRScanner() {
   const container = document.getElementById('reader-container');
@@ -410,7 +432,8 @@ function shareReceiptOnIphone() {
   ];
 
   let y = 140;
-  fields.forEach(f => {
+  let sealY = 0;
+  fields.forEach((f, index) => {
     ctx.fillStyle = '#8c8c8c';
     ctx.font = '15px Arial';
     ctx.fillText(f.label, 50, y);
@@ -420,7 +443,15 @@ function shareReceiptOnIphone() {
     ctx.font = f.bold ? 'bold 18px Arial' : '500 18px Arial';
     ctx.fillText(f.val, 50, y);
     y += 38;
+
+    if (index === 5) {
+      sealY = y - 20;
+    }
   });
+
+  if (!sealY) {
+    sealY = Math.min(y + 80, canvas.height - 180);
+  }
 
   ctx.strokeStyle = '#dcdcdc';
   ctx.lineWidth = 2;
@@ -438,7 +469,7 @@ function shareReceiptOnIphone() {
   ctx.fillText(desc, 50, y);
 
   ctx.save();
-  ctx.translate(430, 720);
+  ctx.translate(430, sealY);
   ctx.rotate(-12 * Math.PI / 180);
 
   ctx.strokeStyle = '#29b3e7';

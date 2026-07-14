@@ -72,7 +72,10 @@
       <div id="reader-container" style="display: none; margin: 15px 0; border: 2px dashed #002f6c; padding: 5px; border-radius: 8px;">
         <div id="qr-status" style="width:100%; text-align:center; color:#fff; padding:6px; display:none;">Загружаю сканер...</div>
         <div id="reader" style="width: 100%;"></div>
-        <button type="button" onclick="stopQRScanner()" style="width: 100%; margin-top: 5px; background: #e02424; color: white; border: none; padding: 6px; border-radius: 4px;">Закрыть камеру</button>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button type="button" onclick="stopQRScanner()" style="flex:1; background: #e02424; color: white; border: none; padding: 8px; border-radius: 4px;">Закрыть камеру</button>
+          <button type="button" onclick="retryQRScanner()" style="flex:1; background: #0056b3; color: white; border: none; padding: 8px; border-radius: 4px;">Повторить</button>
+        </div>
       </div>
 
       <div class="form-group">

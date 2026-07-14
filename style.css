@@ -274,7 +274,8 @@ h2 {
 .blue-seal {
   position: absolute;
   right: 25px;
-  top: 42%;
+  top: 360px;
+  bottom: auto;
   border: 2px solid #29b3e7;
   color: #29b3e7;
   padding: 6px 10px;
